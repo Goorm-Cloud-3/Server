@@ -1,0 +1,63 @@
+name: test-server-ci  #워크플로우의 이름
+on:             #워크 플로우를 어느 시점에 트리거할 지 정의
+                #밑의 이벤트가 발생할 때마다 job이 실행됨
+  push: #(1) push 이밴트가 main 브랜치에서 발생할때
+    branches: [main] #[branch1, branch2, ...]
+  pull_request: #(2) PR 이벤트가 main 브랜치에서 발생할 때
+    branches: [main]
+    paths: #아래의 패턴이 일치하는 파일 변경되었을 때만 워크플로우 실행
+      - "src/main/java/com/example/HospitalServer/**"
+    #paths-ignore: #아래의 패턴이 일치하는 파일이 변경될 땐 아무일도 일어나지 않음
+    #  - "src/main/java/com/example/HospitalServer/HospitalServerApplication.java"
+
+jobs: #CI
+  build:
+    name: Build & Test
+    runs-on: "ubuntu-latest"  #깃허브의 어떤 OS의 서버에서 실행할건지
+    strategy: #여러 환경에서의 테스트/배포를 위해
+      matrix: #빌드 matrix를 구성
+        spring-boot-version: [3.x.x]  #다양한 스프링부트 버전에서 같은 job을 실행 가능
+    steps:
+      - name: Checkout Repository #각 단계의 이름을 지정
+        uses: actions/checkout@v3
+        #깃허브에서 공식으로 제공하는 checkout액션의 버전3를 사용하여
+        #현재 리포지토리 코드를 actions 서버에 다운로드함
+        #즉, 깃허브 저장소의 최신 코드를 로컬 저장소로 체크아웃
+        #외에도 특정 브랜치, 태그, 커밋을 체크아웃 가능
+        #예시
+        #with: ->  각 액션의 매개변수를 지정하는 데 사용된다.
+          #ref: feature/test -> 해당 브랜치의 코드를 가져올 수 있음
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3 #자바 개발 환경을 설정하는 액션
+        with:
+          distribution: 'temurin' #java 배포판 선택
+          java-version: '21'  #사용하려는 JDK 버전
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        # run은 서버 터미널에서 실행할 명령어를 지정하는 키워드이다.
+        # 리눅스 환경이므로 gradlew 파일에 실행권한 부여해야함
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+        #clean은 이전 빌드 결과를 정리하고, build는 새로운 빌드를 실행한다.
+
+      #- name: Run Tests
+      #  run: ./gradlew test   # Gradle 테스트 실행
+
+#deploy: #CD
+#  name: Deploy to Server
+#  needs: build  # build job이 성공해야 실행됨
+#  if: github.ref == 'refs/heads/main'  # main 브랜치에서만 실행
+#  runs-on: ubuntu-latest
+#
+#  steps:
+#    - name: Checkout Repository
+#      uses: actions/checkout@v3
+#
+#    - name: Deploy Application
+#      run: |
+#        echo "Deploying application..."
+#        # 배포 스크립트 추가 (예: scp로 원격 서버에 전송)
+#        # scp build/libs/app.jar user@server:/path/to/deploy/
