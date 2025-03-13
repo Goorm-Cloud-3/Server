@@ -3,9 +3,11 @@ on:             #워크 플로우를 어느 시점에 트리거할 지 정의
                 #밑의 이벤트가 발생할 때마다 job이 실행됨
   push: #(1) push 이밴트가 main 브랜치에서 발생할때
     branches: [main] #[branch1, branch2, ...]
-  pull_request: #(2) PR 이벤트가 main 브랜치에서 발생할 때
-    branches: [main]
-    paths: #아래의 패턴이 일치하는 파일 변경되었을 때만 워크플로우 실행
+    paths:
+      - "src/main/java/com/example/HospitalServer/**"
+  #pull_request: #(2) PR 이벤트가 main 브랜치에서 발생할 때
+  #  branches: [main]
+  #  paths: #아래의 패턴이 일치하는 파일 변경되었을 때만 워크플로우 실행
       - "src/main/java/com/example/HospitalServer/**"
     #paths-ignore: #아래의 패턴이 일치하는 파일이 변경될 땐 아무일도 일어나지 않음
     #  - "src/main/java/com/example/HospitalServer/HospitalServerApplication.java"
